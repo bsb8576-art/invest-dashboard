@@ -110,77 +110,85 @@ th{background:#f3f4f6;}
 </div>
 
 <script>
-// Supabase設定
-const SUPABASE_CONFIG = {
-  URL: "https://gbzyjeevvtwxqtnmbshe.supabase.co",
-  KEY: "sb_publishable_sl0v25ghGOPXQw4SmHlC6g_m8-NLcd9"
-};
-const supabase = window.supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.KEY);
+// 先空宣告全域函數，避免一載入就報錯找不到
+let supabase;
+function switchTab(){}
+function calcBalance(){}
+async function loadAssets(){}
+async function addAsset(){}
+async function delAsset(){}
 
-// 頁籤切換函數（直接綁定onclick）
-function switchTab(targetId){
-    document.querySelectorAll('.nav-btn').forEach(btn=>btn.classList.remove('active'));
-    document.querySelectorAll('.tab-page').forEach(page=>page.classList.remove('active'));
-    event.target.classList.add('active');
-    document.getElementById(targetId).classList.add('active');
-}
+// 等待外部supabase套件載入完成後，覆寫真正函數
+window.addEventListener("load", async function(){
+    const SUPABASE_CONFIG = {
+      URL: "https://gbzyjeevvtwxqtnmbshe.supabase.co",
+      KEY: "sb_publishable_sl0v25ghGOPXQw4SmHlC6g_m8-NLcd9"
+    };
+    supabase = window.supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.KEY);
 
-// 收支計算函數
-function calcBalance(){
-    const income = parseFloat(document.getElementById("monthIncome").value) || 0;
-    const outlay = parseFloat(document.getElementById("monthOutlay").value) || 0;
-    const net = income - outlay;
+    // 頁籤切換
+    switchTab = function(targetId){
+        document.querySelectorAll('.nav-btn').forEach(btn=>btn.classList.remove('active'));
+        document.querySelectorAll('.tab-page').forEach(page=>page.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById(targetId).classList.add('active');
+    }
 
-    document.getElementById("dispIncome").textContent = income;
-    document.getElementById("dispOutlay").textContent = outlay;
-    document.getElementById("dispNet").textContent = net;
+    // 收支計算
+    calcBalance = function(){
+        const income = parseFloat(document.getElementById("monthIncome").value) || 0;
+        const outlay = parseFloat(document.getElementById("monthOutlay").value) || 0;
+        const net = income - outlay;
 
-    document.getElementById("dispNet").className = "stat-value";
-    if(net > 0) document.getElementById("dispNet").classList.add("green");
-    else if(net < 0) document.getElementById("dispNet").classList.add("red");
-    else document.getElementById("dispNet").classList.add("gray");
-}
+        document.getElementById("dispIncome").textContent = income;
+        document.getElementById("dispOutlay").textContent = outlay;
+        document.getElementById("dispNet").textContent = net;
 
-// 資產相關
-async function loadAssets(){
-    const {data} = await supabase.from("assets").select("*");
-    const tbody = document.querySelector("#assetTable tbody");
-    tbody.innerHTML = "";
-    data.forEach(item=>{
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-        <td>${item.name}</td>
-        <td>${item.type}</td>
-        <td>${item.amount}</td>
-        <td>${item.cost_price}</td>
-        <td><button class="btn btn-del" onclick="delAsset('${item.id}')">刪除</button></td>
-        `;
-        tbody.appendChild(tr);
-    })
-}
+        document.getElementById("dispNet").className = "stat-value";
+        if(net > 0) document.getElementById("dispNet").classList.add("green");
+        else if(net < 0) document.getElementById("dispNet").classList.add("red");
+    }
 
-async function addAsset(){
-    const name = document.getElementById("assetName").value;
-    const type = document.getElementById("assetType").value;
-    const amount = parseFloat(document.getElementById("assetAmount").value);
-    const cost = parseFloat(document.getElementById("assetCost").value);
-    if(!name || !amount) return alert("請填寫完整資產資訊");
-    await supabase.from("assets").insert([{name,type,amount,cost_price:cost}]);
+    // 資產讀取
+    loadAssets = async function(){
+        const {data} = await supabase.from("assets").select("*");
+        const tbody = document.querySelector("#assetTable tbody");
+        tbody.innerHTML = "";
+        data.forEach(item=>{
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+            <td>${item.name}</td>
+            <td>${item.type}</td>
+            <td>${item.amount}</td>
+            <td>${item.cost_price}</td>
+            <td><button class="btn btn-del" onclick="delAsset('${item.id}')">刪除</button></td>
+            `;
+            tbody.appendChild(tr);
+        })
+    }
+
+    addAsset = async function(){
+        const name = document.getElementById("assetName").value;
+        const type = document.getElementById("assetType").value;
+        const amount = parseFloat(document.getElementById("assetAmount").value);
+        const cost = parseFloat(document.getElementById("assetCost").value);
+        if(!name || !amount) return alert("請填寫完整資產資訊");
+        await supabase.from("assets").insert([{name,type,amount,cost_price:cost}]);
+        loadAssets();
+        document.getElementById("assetName").value = "";
+        document.getElementById("assetAmount").value = "";
+        document.getElementById("assetCost").value = "";
+    }
+
+    delAsset = async function(id){
+        if(!confirm("確認刪除此筆資產?")) return;
+        await supabase.from("assets").delete().eq("id",id);
+        loadAssets();
+    }
+
+    calcBalance();
     loadAssets();
-    document.getElementById("assetName").value = "";
-    document.getElementById("assetAmount").value = "";
-    document.getElementById("assetCost").value = "";
-}
-
-async function delAsset(id){
-    if(!confirm("確認刪除此筆資產?")) return;
-    await supabase.from("assets").delete().eq("id",id);
-    loadAssets();
-}
-
-// 頁面載入執行初始計算
-calcBalance();
-loadAssets();
+})
 </script>
 </body>
 </html>
