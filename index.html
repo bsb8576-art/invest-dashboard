@@ -30,10 +30,10 @@ th{background:#f3f4f6;}
 </head>
 <body>
 <div class="nav-bar">
-    <button class="nav-btn active" data-target="overview">總覽</button>
-    <button class="nav-btn" data-target="asset">資產管理</button>
-    <button class="nav-btn" data-target="receivable">應收帳款</button>
-    <button class="nav-btn" data-target="cashflow">出入金紀錄</button>
+    <button class="nav-btn active" onclick="switchTab('overview')">總覽</button>
+    <button class="nav-btn" onclick="switchTab('asset')">資產管理</button>
+    <button class="nav-btn" onclick="switchTab('receivable')">應收帳款</button>
+    <button class="nav-btn" onclick="switchTab('cashflow')">出入金紀錄</button>
 </div>
 
 <div id="overview" class="tab-page active">
@@ -41,9 +41,9 @@ th{background:#f3f4f6;}
         <h4>本月統計</h4>
         <div class="input-row">
             <label>收入：</label>
-            <input type="number" id="monthIncome" step="0.01">
+            <input type="number" id="monthIncome" step="0.01" oninput="calcBalance()">
             <label>支出：</label>
-            <input type="number" id="monthOutlay" step="0.01">
+            <input type="number" id="monthOutlay" step="0.01" oninput="calcBalance()">
         </div>
         <div class="month-stat">
             <div>
@@ -110,58 +110,39 @@ th{background:#f3f4f6;}
 </div>
 
 <script>
-// Supabase 連線參數
+// Supabase設定
 const SUPABASE_CONFIG = {
   URL: "https://gbzyjeevvtwxqtnmbshe.supabase.co",
   KEY: "sb_publishable_sl0v25ghGOPXQw4SmHlC6g_m8-NLcd9"
 };
 const supabase = window.supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.KEY);
 
-// 等待整個頁面DOM完全載入後，才執行所有程式（解決Safari相容性核心修正）
-document.addEventListener('DOMContentLoaded', function(){
-
-// ========== 頁籤切換邏輯 ==========
-document.querySelectorAll('.nav-btn').forEach(btn=>{
-    btn.addEventListener('click', function(){
-        const targetId = this.getAttribute('data-target');
-        document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-        document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
-        this.classList.add('active');
-        document.getElementById(targetId).classList.add('active');
-    })
-})
-
-// ========== 收支計算邏輯 ==========
-const inpIncome = document.getElementById("monthIncome");
-const inpOutlay = document.getElementById("monthOutlay");
-const dispIncome = document.getElementById("dispIncome");
-const dispOutlay = document.getElementById("dispOutlay");
-const dispNet = document.getElementById("dispNet");
-
-function updateDisplay(){
-    const income = parseFloat(inpIncome.value) || 0;
-    const outlay = parseFloat(inpOutlay.value) || 0;
-    const net = income - outlay;
-
-    dispIncome.textContent = income;
-    dispOutlay.textContent = outlay;
-    dispNet.textContent = net;
-
-    dispNet.className = "stat-value";
-    if(net > 0) dispNet.classList.add("green");
-    else if(net < 0) dispNet.classList.add("red");
-    else dispNet.classList.add("gray");
+// 頁籤切換函數（直接綁定onclick）
+function switchTab(targetId){
+    document.querySelectorAll('.nav-btn').forEach(btn=>btn.classList.remove('active'));
+    document.querySelectorAll('.tab-page').forEach(page=>page.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById(targetId).classList.add('active');
 }
 
-// 多重事件監聽，相容iPhone Safari
-["input","blur"].forEach(evt=>{
-    inpIncome.addEventListener(evt, updateDisplay);
-    inpOutlay.addEventListener(evt, updateDisplay);
-});
-updateDisplay();
+// 收支計算函數
+function calcBalance(){
+    const income = parseFloat(document.getElementById("monthIncome").value) || 0;
+    const outlay = parseFloat(document.getElementById("monthOutlay").value) || 0;
+    const net = income - outlay;
 
-// ========== 資產資料函數 ==========
-window.loadAssets = async function(){
+    document.getElementById("dispIncome").textContent = income;
+    document.getElementById("dispOutlay").textContent = outlay;
+    document.getElementById("dispNet").textContent = net;
+
+    document.getElementById("dispNet").className = "stat-value";
+    if(net > 0) document.getElementById("dispNet").classList.add("green");
+    else if(net < 0) document.getElementById("dispNet").classList.add("red");
+    else document.getElementById("dispNet").classList.add("gray");
+}
+
+// 資產相關
+async function loadAssets(){
     const {data} = await supabase.from("assets").select("*");
     const tbody = document.querySelector("#assetTable tbody");
     tbody.innerHTML = "";
@@ -178,7 +159,7 @@ window.loadAssets = async function(){
     })
 }
 
-window.addAsset = async function(){
+async function addAsset(){
     const name = document.getElementById("assetName").value;
     const type = document.getElementById("assetType").value;
     const amount = parseFloat(document.getElementById("assetAmount").value);
@@ -191,16 +172,15 @@ window.addAsset = async function(){
     document.getElementById("assetCost").value = "";
 }
 
-window.delAsset = async function(id){
+async function delAsset(id){
     if(!confirm("確認刪除此筆資產?")) return;
     await supabase.from("assets").delete().eq("id",id);
     loadAssets();
 }
 
-// 載入資產清單
+// 頁面載入執行初始計算
+calcBalance();
 loadAssets();
-
-});
 </script>
 </body>
 </html>
