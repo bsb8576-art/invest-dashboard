@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>投資儀表板</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui, -apple-system, sans-serif;}
+body{background:#f7f8fa;padding:16px;}
+.nav-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.nav-btn{padding:10px 18px;border:none;border-radius:8px;font-size:15px;cursor:pointer;}
+.nav-btn.active{background:#2563eb;color:white;}
+.nav-btn:not(.active){background:#e5e7eb;color:#222;}
+
+.tab-page{display:none;}
+.tab-page.active{display:block;}
+.card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px #00000012;margin-bottom:16px;}
+.input-row{display:flex;gap:10px;margin:8px 0;align-items:center;flex-wrap:wrap;}
+input{padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px;}
+.month-stat{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0;text-align:center;}
+.stat-value{font-size:22px;font-weight:bold;margin-top:4px;}
+.green{color:#16a34a;}.red{color:#dc2626;}.gray{color:#333;}
+</style>
+</head>
+<body>
+<div class="nav-bar">
+    <button class="nav-btn active" data-target="overview">總覽</button>
+    <button class="nav-btn" data-target="asset">資產管理</button>
+    <button class="nav-btn" data-target="receivable">應收帳款</button>
+    <button class="nav-btn" data-target="cashflow">出入金紀錄</button>
+</div>
+
+<div id="overview" class="tab-page active">
+    <div class="card">
+        <h4>本月統計</h4>
+        <div class="input-row">
+            <label>收入：</label>
+            <input type="number" id="monthIncome" step="0.01">
+            <label>支出：</label>
+            <input type="number" id="monthOutlay" step="0.01">
+        </div>
+        <div class="month-stat">
+            <div>
+                <div>收入</div>
+                <div id="dispIncome" class="stat-value green">0</div>
+            </div>
+            <div>
+                <div>支出</div>
+                <div id="dispOutlay" class="stat-value red">0</div>
+            </div>
+            <div>
+                <div>月度淨增</div>
+                <div id="dispNet" class="stat-value gray">0</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="asset" class="tab-page">
+    <div class="card">
+        <h4>資產管理</h4>
+        <p>頁籤切換測試成功</p>
+    </div>
+</div>
+
+<div id="receivable" class="tab-page">
+    <div class="card">
+        <h4>應收帳款</h4>
+    </div>
+</div>
+
+<div id="cashflow" class="tab-page">
+    <div class="card">
+        <h4>出入金紀錄</h4>
+    </div>
+</div>
+
+<script>
+// 頁籤切換
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+    btn.onclick = function(){
+        const targetId = this.dataset.target;
+        document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+        document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById(targetId).classList.add('active');
+    }
+})
+
+// 本月收支計算
+const inpIncome = document.getElementById("monthIncome");
+const inpOutlay = document.getElementById("monthOutlay");
+const dispIncome = document.getElementById("dispIncome");
+const dispOutlay = document.getElementById("dispOutlay");
+const dispNet = document.getElementById("dispNet");
+
+function updateDisplay(){
+    const income = parseFloat(inpIncome.value) || 0;
+    const outlay = parseFloat(inpOutlay.value) || 0;
+    const net = income - outlay;
+
+    dispIncome.textContent = income;
+    dispOutlay.textContent = outlay;
+    dispNet.textContent = net;
+
+    dispNet.className = "stat-value";
+    if(net > 0) dispNet.classList.add("green");
+    else if(net < 0) dispNet.classList.add("red");
+    else dispNet.classList.add("gray");
+}
+
+// 多重事件監聽，相容Safari
+["input","keyup","blur"].forEach(evt=>{
+    inpIncome.addEventListener(evt, updateDisplay);
+    inpOutlay.addEventListener(evt, updateDisplay);
+});
+updateDisplay();
+</script>
+</body>
+</html>
