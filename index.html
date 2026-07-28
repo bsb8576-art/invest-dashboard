@@ -110,26 +110,28 @@ th{background:#f3f4f6;}
 </div>
 
 <script>
-// Supabase 連線參數（已填入你的資訊）
+// Supabase 連線參數
 const SUPABASE_CONFIG = {
   URL: "https://gbzyjeevvtwxqtnmbshe.supabase.co",
   KEY: "sb_publishable_sl0v25ghGOPXQw4SmHlC6g_m8-NLcd9"
 };
-
 const supabase = window.supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.KEY);
 
-// 頁籤切換
+// 等待整個頁面DOM完全載入後，才執行所有程式（解決Safari相容性核心修正）
+document.addEventListener('DOMContentLoaded', function(){
+
+// ========== 頁籤切換邏輯 ==========
 document.querySelectorAll('.nav-btn').forEach(btn=>{
-    btn.onclick = function(){
-        const targetId = this.dataset.target;
+    btn.addEventListener('click', function(){
+        const targetId = this.getAttribute('data-target');
         document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
         document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
         this.classList.add('active');
         document.getElementById(targetId).classList.add('active');
-    }
+    })
 })
 
-// 本月收支計算
+// ========== 收支計算邏輯 ==========
 const inpIncome = document.getElementById("monthIncome");
 const inpOutlay = document.getElementById("monthOutlay");
 const dispIncome = document.getElementById("dispIncome");
@@ -150,14 +152,16 @@ function updateDisplay(){
     else if(net < 0) dispNet.classList.add("red");
     else dispNet.classList.add("gray");
 }
-["input","keyup","blur"].forEach(evt=>{
+
+// 多重事件監聽，相容iPhone Safari
+["input","blur"].forEach(evt=>{
     inpIncome.addEventListener(evt, updateDisplay);
     inpOutlay.addEventListener(evt, updateDisplay);
 });
 updateDisplay();
 
-// 資產相關函數
-async function loadAssets(){
+// ========== 資產資料函數 ==========
+window.loadAssets = async function(){
     const {data} = await supabase.from("assets").select("*");
     const tbody = document.querySelector("#assetTable tbody");
     tbody.innerHTML = "";
@@ -174,7 +178,7 @@ async function loadAssets(){
     })
 }
 
-async function addAsset(){
+window.addAsset = async function(){
     const name = document.getElementById("assetName").value;
     const type = document.getElementById("assetType").value;
     const amount = parseFloat(document.getElementById("assetAmount").value);
@@ -182,20 +186,21 @@ async function addAsset(){
     if(!name || !amount) return alert("請填寫完整資產資訊");
     await supabase.from("assets").insert([{name,type,amount,cost_price:cost}]);
     loadAssets();
-    //清空輸入欄
     document.getElementById("assetName").value = "";
     document.getElementById("assetAmount").value = "";
     document.getElementById("assetCost").value = "";
 }
 
-async function delAsset(id){
+window.delAsset = async function(id){
     if(!confirm("確認刪除此筆資產?")) return;
     await supabase.from("assets").delete().eq("id",id);
     loadAssets();
 }
 
-//頁面載入時讀取資產
+// 載入資產清單
 loadAssets();
+
+});
 </script>
 </body>
 </html>
