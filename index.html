@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>投資儀表板</title>
+<title>投資資產儀表板</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui, -apple-system, sans-serif;}
 body{background:#f7f8fa;padding:16px;}
@@ -16,10 +17,15 @@ body{background:#f7f8fa;padding:16px;}
 .tab-page.active{display:block;}
 .card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px #00000012;margin-bottom:16px;}
 .input-row{display:flex;gap:10px;margin:8px 0;align-items:center;flex-wrap:wrap;}
-input{padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px;}
+input,select{padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px;}
 .month-stat{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0;text-align:center;}
 .stat-value{font-size:22px;font-weight:bold;margin-top:4px;}
 .green{color:#16a34a;}.red{color:#dc2626;}.gray{color:#333;}
+table{width:100%;border-collapse:collapse;margin-top:12px;}
+th,td{border:1px solid #eee;padding:10px;text-align:left;font-size:14px;}
+th{background:#f3f4f6;}
+.btn{padding:7px 12px;border-radius:6px;border:none;cursor:pointer;background:#2563eb;color:white;}
+.btn-del{background:#dc2626;}
 </style>
 </head>
 <body>
@@ -58,24 +64,60 @@ input{padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px;}
 
 <div id="asset" class="tab-page">
     <div class="card">
-        <h4>資產管理</h4>
-        <p>頁籤切換測試成功</p>
+        <h4>新增資產</h4>
+        <div class="input-row">
+            <label>資產名稱</label>
+            <input type="text" id="assetName" placeholder="2330 / 00675L">
+            <label>類別</label>
+            <select id="assetType">
+                <option value="台股">台股</option>
+                <option value="加密貨幣">加密貨幣</option>
+            </select>
+            <label>持有數量</label>
+            <input type="number" id="assetAmount" step="0.0001">
+            <label>成本單價(TWD)</label>
+            <input type="number" id="assetCost" step="0.01">
+            <button class="btn" onclick="addAsset()">新增</button>
+        </div>
+    </div>
+    <div class="card">
+        <h4>資產清單</h4>
+        <table id="assetTable">
+            <thead>
+                <tr>
+                    <th>名稱</th>
+                    <th>類別</th>
+                    <th>數量</th>
+                    <th>成本單價</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
 </div>
 
 <div id="receivable" class="tab-page">
     <div class="card">
-        <h4>應收帳款</h4>
+        <h4>應收帳款（待開發）</h4>
     </div>
 </div>
 
 <div id="cashflow" class="tab-page">
     <div class="card">
-        <h4>出入金紀錄</h4>
+        <h4>入金出金紀錄（待開發）</h4>
     </div>
 </div>
 
 <script>
+// Supabase 連線參數（已填入你的資訊）
+const SUPABASE_CONFIG = {
+  URL: "https://gbzyjeevvtwxqtnmbshe.supabase.co",
+  KEY: "sb_publishable_sl0v25ghGOPXQw4SmHlC6g_m8-NLcd9"
+};
+
+const supabase = window.supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.KEY);
+
 // 頁籤切換
 document.querySelectorAll('.nav-btn').forEach(btn=>{
     btn.onclick = function(){
@@ -108,13 +150,52 @@ function updateDisplay(){
     else if(net < 0) dispNet.classList.add("red");
     else dispNet.classList.add("gray");
 }
-
-// 多重事件監聽，相容Safari
 ["input","keyup","blur"].forEach(evt=>{
     inpIncome.addEventListener(evt, updateDisplay);
     inpOutlay.addEventListener(evt, updateDisplay);
 });
 updateDisplay();
+
+// 資產相關函數
+async function loadAssets(){
+    const {data} = await supabase.from("assets").select("*");
+    const tbody = document.querySelector("#assetTable tbody");
+    tbody.innerHTML = "";
+    data.forEach(item=>{
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+        <td>${item.name}</td>
+        <td>${item.type}</td>
+        <td>${item.amount}</td>
+        <td>${item.cost_price}</td>
+        <td><button class="btn btn-del" onclick="delAsset('${item.id}')">刪除</button></td>
+        `;
+        tbody.appendChild(tr);
+    })
+}
+
+async function addAsset(){
+    const name = document.getElementById("assetName").value;
+    const type = document.getElementById("assetType").value;
+    const amount = parseFloat(document.getElementById("assetAmount").value);
+    const cost = parseFloat(document.getElementById("assetCost").value);
+    if(!name || !amount) return alert("請填寫完整資產資訊");
+    await supabase.from("assets").insert([{name,type,amount,cost_price:cost}]);
+    loadAssets();
+    //清空輸入欄
+    document.getElementById("assetName").value = "";
+    document.getElementById("assetAmount").value = "";
+    document.getElementById("assetCost").value = "";
+}
+
+async function delAsset(id){
+    if(!confirm("確認刪除此筆資產?")) return;
+    await supabase.from("assets").delete().eq("id",id);
+    loadAssets();
+}
+
+//頁面載入時讀取資產
+loadAssets();
 </script>
 </body>
 </html>
