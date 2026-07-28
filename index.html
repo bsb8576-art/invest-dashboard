@@ -67,15 +67,20 @@ th{background:#f3f4f6;}
         <h4>新增資產</h4>
         <div class="input-row">
             <label>資產名稱</label>
-            <input type="text" id="assetName" placeholder="2330 / 00675L">
+            <input type="text" id="assetName" placeholder="2330 / SOL">
             <label>類別</label>
             <select id="assetType">
                 <option value="台股">台股</option>
                 <option value="加密貨幣">加密貨幣</option>
             </select>
+            <label>幣別</label>
+            <select id="assetCurrency">
+                <option value="TWD">TWD 新台幣</option>
+                <option value="USD">USD 美元</option>
+            </select>
             <label>持有數量</label>
             <input type="number" id="assetAmount" step="0.0001">
-            <label>成本單價(TWD)</label>
+            <label>成本單價</label>
             <input type="number" id="assetCost" step="0.01">
             <button class="btn" id="btnAddAsset">新增</button>
         </div>
@@ -87,6 +92,7 @@ th{background:#f3f4f6;}
                 <tr>
                     <th>名稱</th>
                     <th>類別</th>
+                    <th>幣別</th>
                     <th>數量</th>
                     <th>成本單價</th>
                     <th>操作</th>
@@ -110,14 +116,13 @@ th{background:#f3f4f6;}
 </div>
 
 <script>
-// 介面邏輯優先執行，不依賴Supabase
+// 介面邏輯優先執行
 const incomeInput = document.getElementById("monthIncome");
 const outlayInput = document.getElementById("monthOutlay");
 const dispIncome = document.getElementById("dispIncome");
 const dispOutlay = document.getElementById("dispOutlay");
 const dispNet = document.getElementById("dispNet");
 
-// 收支計算
 function calcBalance(){
     const income = parseFloat(incomeInput.value) || 0;
     const outlay = parseFloat(outlayInput.value) || 0;
@@ -144,7 +149,7 @@ document.querySelectorAll(".nav-btn").forEach(btn=>{
     })
 })
 
-// ===== 後續載入Supabase資料功能 =====
+// Supabase
 let supabaseClient;
 async function initDB(){
     const SUPABASE_CONFIG = {
@@ -156,7 +161,11 @@ async function initDB(){
 }
 
 async function loadAssets(){
-    const {data} = await supabaseClient.from("assets").select("*");
+    const {data,error} = await supabaseClient.from("assets").select("*");
+    if(error){
+        alert("讀取資產失敗:"+error.message);
+        return;
+    }
     const tbody = document.querySelector("#assetTable tbody");
     tbody.innerHTML = "";
     data.forEach(item=>{
@@ -164,25 +173,38 @@ async function loadAssets(){
         tr.innerHTML = `
         <td>${item.name}</td>
         <td>${item.type}</td>
+        <td>${item.currency}</td>
         <td>${item.amount}</td>
         <td>${item.cost_price}</td>
         <td><button class="btn btn-del" data-id="${item.id}">刪除</button></td>
         `;
         tbody.appendChild(tr);
     })
-    // 綁定刪除按鈕
     document.querySelectorAll(".btn-del").forEach(delBtn=>{
         delBtn.onclick = ()=> delAsset(delBtn.dataset.id);
     })
 }
 
 async function addAsset(){
-    const name = document.getElementById("assetName").value;
+    const name = document.getElementById("assetName").value.trim();
     const type = document.getElementById("assetType").value;
+    const currency = document.getElementById("assetCurrency").value;
     const amount = parseFloat(document.getElementById("assetAmount").value);
     const cost = parseFloat(document.getElementById("assetCost").value);
-    if(!name || !amount) return alert("請填寫完整資產資訊");
-    await supabaseClient.from("assets").insert([{name,type,amount,cost_price:cost}]);
+    
+    if(!name || isNaN(amount) || isNaN(cost)){
+        alert("請完整填寫資產資料");
+        return;
+    }
+
+    const {error} = await supabaseClient.from("assets").insert([
+        {name, type, currency, amount, cost_price:cost}
+    ]);
+    if(error){
+        alert("新增失敗:"+error.message);
+        return;
+    }
+    //清空輸入
     document.getElementById("assetName").value = "";
     document.getElementById("assetAmount").value = "";
     document.getElementById("assetCost").value = "";
@@ -191,14 +213,13 @@ async function addAsset(){
 
 async function delAsset(id){
     if(!confirm("確認刪除此筆資產?")) return;
-    await supabaseClient.from("assets").delete().eq("id",id);
-    loadAssets();
+    const {error} = await supabaseClient.from("assets").delete().eq("id",id);
+    if(error) alert("刪除失敗:"+error.message);
+    else loadAssets();
 }
 
-// 新增資產按鈕綁定
 document.getElementById("btnAddAsset").addEventListener("click", addAsset);
 
-// 延遲初始化資料庫，不阻擋介面功能
 setTimeout(()=>{
     initDB();
 }, 800);
