@@ -7,11 +7,11 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui, -apple-system, sans-serif;-webkit-tap-highlight-color: transparent;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui, -apple-system, sans-serif;-webkit-tap-highlight-color: rgba(0,0,0,0);}
 body{background:#f7f8fa;padding:16px;padding-bottom:40px;}
 
 .nav-bar{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
-.nav-btn{padding:12px 20px;border:none;border-radius:12px;font-size:16px;cursor:pointer;background:#e5e7eb;color:#222;transition:0.15s;pointer-events:auto !important;-webkit-appearance:none;}
+.nav-btn{padding:12px 20px;border:none;border-radius:12px;font-size:16px;cursor:pointer;background:#e5e7eb;color:#222;transition:0.15s;-webkit-appearance:none;}
 .nav-btn.active{background:#2563eb;color:#fff;}
 
 .tab-page{display:none;}
@@ -57,10 +57,10 @@ th{background:#f1f5f9;font-weight:500;}
 </head>
 <body>
 <div class="nav-bar">
-    <button class="nav-btn active" data-target="overview">總覽</button>
-    <button class="nav-btn" data-target="asset">資產管理</button>
-    <button class="nav-btn" data-target="receivable">應收帳款</button>
-    <button class="nav-btn" data-target="cashrecord">出入金紀錄</button>
+    <button class="nav-btn active" onclick="switchTab('overview')">總覽</button>
+    <button class="nav-btn" onclick="switchTab('asset')">資產管理</button>
+    <button class="nav-btn" onclick="switchTab('receivable')">應收帳款</button>
+    <button class="nav-btn" onclick="switchTab('cashrecord')">出入金紀錄</button>
 </div>
 
 <!-- 總覽頁 -->
@@ -136,7 +136,7 @@ th{background:#f1f5f9;font-weight:500;}
         </form>
     </div>
     <div class="card">
-        <h4>資產清單（現價暫以成本價顯示，後續手動更新）</h4>
+        <h4>資產清單（現價暫以成本價顯示）</h4>
         <table>
             <thead>
                 <tr>
@@ -173,42 +173,35 @@ th{background:#f1f5f9;font-weight:500;}
 </div>
 
 <script>
+// 【核心】Inline onclick呼叫的頁籤切換函數，優先載入，永遠可用
+function switchTab(targetId) {
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-page").forEach(p => p.classList.remove("active"));
+    event.target.classList.add("active");
+    document.getElementById(targetId).classList.add("active");
+}
+
 // Supabase 連線設定
 const SUPABASE_URL = "https://gbzyjeevvtwxqtnmbshe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_sl0v25ghGOPXQw4SmHlC6g_m8-NLcd9";
 const { createClient } = supabase;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// 類別排序權重
 const typeOrder = {"現金":1,"銀行":2,"台股":3,"加密貨幣":4};
 let worthChart, pieChart;
 let assetList = [];
 const usdTwdRate = 32.5;
 
-// 頁籤點擊邏輯（優先執行，不依賴資料載入）
-document.querySelectorAll(".nav-btn").forEach(btn => {
-    btn.addEventListener("click", function() {
-        const targetId = this.dataset.target;
-        // 清除激活狀態
-        document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-        document.querySelectorAll(".tab-page").forEach(p => p.classList.remove("active"));
-        // 切換頁面
-        this.classList.add("active");
-        document.getElementById(targetId).classList.add("active");
-    })
-})
-
-// 頁面載入完成後載入資料
-window.addEventListener("load", async () => {
+// 延遲載入資料，不要阻塞介面
+setTimeout(async ()=>{
     try {
         await loadAssets();
         calcOverview();
     } catch (err) {
         console.log("資料載入異常：", err);
     }
-});
+}, 300);
 
-// 讀取資產清單（移除遠端API抓取，避免阻塞）
 async function loadAssets() {
     const { data, error } = await supabase.from("assets").select("*");
     if (error) {
@@ -216,12 +209,10 @@ async function loadAssets() {
         return;
     }
     assetList = data;
-    // 暫時用成本價替代即時報價，移除CORS請求阻塞
     assetList.forEach(item => item.latestPrice = item.cost_price || 0);
     renderAssetTable();
 }
 
-// 計算單筆資產總市值（統一轉TWD）
 function calcMarketValue(item) {
     let price = item.latestPrice || item.cost_price || 0;
     let value = price * item.amount;
@@ -229,10 +220,8 @@ function calcMarketValue(item) {
     return value;
 }
 
-// 渲染資產表格
 function renderAssetTable() {
     const tbody = document.getElementById("assetTableBody");
-    // 排序規則：現金>銀行>台股>加密貨幣，同類別市值由大到小
     assetList.sort((a, b) => {
         const weightA = typeOrder[a.type] ?? 99;
         const weightB = typeOrder[b.type] ?? 99;
@@ -258,13 +247,11 @@ function renderAssetTable() {
         `;
         tbody.appendChild(tr);
     })
-    // 刪除按鈕綁定
     document.querySelectorAll(".btn-del").forEach(btn => {
         btn.onclick = () => deleteAsset(btn.dataset.id);
     })
 }
 
-// 總覽頁面數值計算
 function calcOverview() {
     let totalWorth = 0;
     assetList.forEach(item => totalWorth += calcMarketValue(item));
@@ -272,7 +259,6 @@ function calcOverview() {
     renderPieChart(totalWorth);
 }
 
-// 資產配置圓餅圖
 function renderPieChart(total) {
     const ctx = document.getElementById("pieChart").getContext("2d");
     const groupMap = {};
@@ -303,7 +289,6 @@ function renderPieChart(total) {
     })
 }
 
-// 新增資產表單提交
 document.getElementById("assetForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const name = document.getElementById("assetName").value.trim();
@@ -325,7 +310,6 @@ document.getElementById("assetForm").addEventListener("submit", async (e) => {
     }
 })
 
-// 刪除資產
 async function deleteAsset(id) {
     if (!confirm("確認刪除此筆資產？")) return;
     const { error } = await supabase.from("assets").delete().eq("id", id);
