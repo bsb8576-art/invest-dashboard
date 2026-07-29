@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>投資身價儀表板</title>
+<!-- 只載入套件，但完全不呼叫、不初始化 -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:system-ui, -apple-system, sans-serif;}
@@ -14,22 +15,6 @@ body{padding:16px;background:#f7f8fa;padding-bottom:40px;}
 .tab-page{display:none;}
 .tab-page.active{display:block;}
 .card{background:#fff;padding:22px;border-radius:16px;margin-bottom:18px;box-shadow:0 2px 6px #0000000c;}
-.card h4{font-size:20px;margin-bottom:16px;font-weight:600;}
-.form-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;}
-.form-group{flex:1;min-width:140px;display:flex;flex-direction:column;gap:8px;}
-.form-group label{font-size:14px;color:#4b5563;}
-input,select{padding:12px;border:1px solid #e2e8f0;border-radius:10px;font-size:16px;}
-.btn{padding:12px 20px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-size:16px;cursor:pointer;-webkit-appearance:none;}
-.btn-del{background:#dc2626;padding:8px 12px;font-size:14px;color:white;border:none;border-radius:8px;cursor:pointer;-webkit-appearance:none;}
-table{width:100%;border-collapse:collapse;margin-top:12px;}
-th,td{border:1px solid #e5e7eb;padding:10px 6px;text-align:left;font-size:14px;}
-th{background:#f1f5f9;}
-.metric-value{font-size:26px;font-weight:bold;}
-.green{color:#16a34a;}
-.red{color:#dc2626;}
-@media (max-width:640px){
-    .form-row{flex-direction:column;}
-}
 </style>
 </head>
 <body>
@@ -41,201 +26,26 @@ th{background:#f1f5f9;}
 </div>
 
 <div id="overview" class="tab-page active">
-    <div class="card">
-        <h4>總身價 (TWD)</h4>
-        <div class="metric-value" id="totalNetWorth">0</div>
-    </div>
-    <div class="card">
-        <h4>Crypto累計損益</h4>
-        <div id="cryptoPnl" class="metric-value">0</div>
-    </div>
+    <div class="card">總覽頁測試</div>
 </div>
-
 <div id="asset" class="tab-page">
-    <div class="card">
-        <h4>新增資產</h4>
-        <form id="assetForm">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>資產名稱</label>
-                    <input type="text" id="assetName" placeholder="2330 / BTC">
-                </div>
-                <div class="form-group">
-                    <label>類別</label>
-                    <select id="assetType">
-                        <option value="現金">現金</option>
-                        <option value="銀行">銀行</option>
-                        <option value="台股">台股</option>
-                        <option value="加密貨幣">加密貨幣</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>幣別</label>
-                    <select id="assetCurrency">
-                        <option value="TWD">TWD 新台幣</option>
-                        <option value="USD">USD 美元</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>持有數量</label>
-                    <input type="number" id="assetAmount" step="0.0001">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>成本單價</label>
-                    <input type="number" id="assetCost" step="0.01">
-                </div>
-                <div class="form-group" style="display:flex;align-items:flex-end;">
-                    <button class="btn">新增資產</button>
-                </div>
-            </div>
-        </form>
-    </div>
-    <div class="card">
-        <h4>資產清單</h4>
-        <table>
-            <thead>
-                <tr>
-                    <th>名稱</th>
-                    <th>類別</th>
-                    <th>幣別</th>
-                    <th>數量</th>
-                    <th>成本單價</th>
-                    <th>總市值(TWD)</th>
-                    <th>未實現損益</th>
-                    <th>操作</th>
-                </tr>
-            </thead>
-            <tbody id="assetTableBody"></tbody>
-        </table>
-    </div>
+    <div class="card">資產管理頁測試</div>
 </div>
-
 <div id="receivable" class="tab-page">
-    <div class="card">
-        <h4>應收帳款</h4>
-        <p>待開發</p>
-    </div>
+    <div class="card">應收帳款頁測試</div>
 </div>
-
 <div id="cashrecord" class="tab-page">
-    <div class="card">
-        <h4>入金/出金紀錄</h4>
-        <p>待開發</p>
-    </div>
+    <div class="card">出入金紀錄頁測試</div>
 </div>
 
 <script>
-// 頁籤切換函數（最先載入，確保永遠可用）
 function switchTab(targetId){
     document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
     document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
     event.target.classList.add('active');
     document.getElementById(targetId).classList.add('active');
 }
-
-// Supabase 設定
-const SUPABASE_URL = "https://gbzyjeevvtwxqtnmbshe.supabase.co";
-const SUPABASE_KEY = "sb_publishable_sl0v25ghGOPXQw4SmHlC6g_m8-NLcd9";
-const { createClient } = supabase;
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-const typeOrder = {"現金":1,"銀行":2,"台股":3,"加密貨幣":4};
-let assetList = [];
-const usdRate = 32.5;
-
-// 所有程式包進 try catch，錯誤不會凍結頁面
-(async function init(){
-    try{
-        await loadAssets();
-        calcOverview();
-    }catch(e){
-        console.error("初始化失敗：",e);
-    }
-})();
-
-async function loadAssets(){
-    const { data, error } = await supabase.from("assets").select("*");
-    if(error){
-        console.error("讀取資產失敗",error);
-        return;
-    }
-    assetList = data;
-    assetList.forEach(item => item.latestPrice = item.cost_price ?? 0);
-    renderTable();
-}
-
-function calcMarket(item){
-    const price = item.latestPrice || item.cost_price || 0;
-    let value = price * item.amount;
-    if(item.currency === "USD") value *= usdRate;
-    return value;
-}
-
-function renderTable(){
-    const tbody = document.getElementById("assetTableBody");
-    assetList.sort((a,b)=>{
-        const wa = typeOrder[a.type] ?? 99;
-        const wb = typeOrder[b.type] ?? 99;
-        if(wa !== wb) return wa - wb;
-        return calcMarket(b) - calcMarket(a);
-    });
-    tbody.innerHTML = "";
-    assetList.forEach(item=>{
-        const marketVal = calcMarket(item);
-        const costTotal = item.amount * item.cost_price;
-        const pnl = marketVal - (item.currency === "USD" ? costTotal * usdRate : costTotal);
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${item.name}</td>
-            <td>${item.type}</td>
-            <td>${item.currency}</td>
-            <td>${item.amount}</td>
-            <td>${item.cost_price}</td>
-            <td>${marketVal.toLocaleString()}</td>
-            <td class="${pnl>=0?'green':'red'}">${pnl.toLocaleString()}</td>
-            <td><button class="btn-del" data-id="${item.id}">刪除</button></td>
-        `;
-        tbody.appendChild(tr);
-    });
-    document.querySelectorAll(".btn-del").forEach(btn=>{
-        btn.onclick = async ()=>{
-            if(!confirm("確認刪除?")) return;
-            await supabase.from("assets").delete().eq("id",btn.dataset.id);
-            loadAssets();
-            calcOverview();
-        }
-    })
-}
-
-function calcOverview(){
-    let total = 0;
-    assetList.forEach(item=>total += calcMarket(item));
-    document.getElementById("totalNetWorth").innerText = total.toLocaleString();
-}
-
-// 表單送出
-document.getElementById("assetForm").addEventListener("submit",async (e)=>{
-    e.preventDefault();
-    try{
-        const payload = {
-            name: document.getElementById("assetName").value.trim(),
-            type: document.getElementById("assetType").value,
-            currency: document.getElementById("assetCurrency").value,
-            amount: parseFloat(document.getElementById("assetAmount").value),
-            cost_price: parseFloat(document.getElementById("assetCost").value)
-        };
-        await supabase.from("assets").insert([payload]);
-        document.getElementById("assetForm").reset();
-        loadAssets();
-        calcOverview();
-    }catch(err){
-        console.error("新增失敗",err);
-    }
-})
+// 重點：沒有任何 supabase.createClient、沒有任何查詢程式
 </script>
 </body>
 </html>
