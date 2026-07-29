@@ -2,57 +2,17 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>投資身價儀表板</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>測試頁籤</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui, -apple-system, sans-serif;-webkit-tap-highlight-color: rgba(0,0,0,0);}
-body{background:#f7f8fa;padding:16px;padding-bottom:40px;}
-
-.nav-bar{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
-.nav-btn{padding:12px 20px;border:none;border-radius:12px;font-size:16px;cursor:pointer;background:#e5e7eb;color:#222;transition:0.15s;-webkit-appearance:none;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{padding:16px;background:#f7f8fa;}
+.nav-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+.nav-btn{padding:12px 18px;border:none;border-radius:12px;font-size:16px;background:#e5e7eb;cursor:pointer;}
 .nav-btn.active{background:#2563eb;color:#fff;}
-
 .tab-page{display:none;}
 .tab-page.active{display:block;}
-
-.card{background:#fff;border-radius:16px;padding:22px;box-shadow:0 2px 8px #0000000f;margin-bottom:18px;}
-.card h4{font-size:20px;margin-bottom:18px;font-weight:600;}
-
-.form-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;}
-.form-group{flex:1;min-width:140px;display:flex;flex-direction:column;gap:8px;}
-.form-group label{font-size:14px;color:#4b5563;}
-input,select{padding:12px;border:1px solid #e2e8f0;border-radius:10px;font-size:16px;background:#fff;}
-.btn{padding:12px 20px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-size:16px;cursor:pointer;-webkit-appearance:none;}
-.btn-del{background:#dc2626;padding:8px 12px;font-size:14px;color:white;border:none;border-radius:8px;cursor:pointer;-webkit-appearance:none;}
-
-table{width:100%;border-collapse:collapse;margin-top:12px;}
-th,td{border:1px solid #e5e7eb;padding:12px 6px;text-align:left;font-size:14px;}
-th{background:#f1f5f9;font-weight:500;}
-
-.metric-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
-.metric-card{background:#eff6ff;border-radius:14px;padding:20px;text-align:center;}
-.metric-title{font-size:14px;color:#475569;margin-bottom:8px;}
-.metric-value{font-size:26px;font-weight:700;color:#111827;}
-.ath-new{background:#ffd700;color:#000;padding:6px 10px;border-radius:8px;font-weight:bold;margin-top:8px;display:inline-block;font-size:14px;}
-
-.chart-box{height:360px;margin:12px 0;position:relative;}
-.chart-switch{display:flex;gap:8px;margin-bottom:12px;}
-.switch-btn{border:1px solid #cbd5e1;padding:8px 16px;border-radius:8px;background:#fff;cursor:pointer;font-size:15px;-webkit-appearance:none;}
-.switch-btn.active{background:#2563eb;color:#fff;border-color:#2563eb;}
-
-.green{color:#16a34a;font-weight:500;}
-.red{color:#dc2626;font-weight:500;}
-.gray{color:#64748b;}
-
-@media (max-width:640px){
-    .form-row{flex-direction:column;}
-    .metric-wrap{grid-template-columns:1fr;}
-    table{font-size:13px;}
-    th,td{padding:10px 4px;}
-    .nav-btn{padding:10px 14px;font-size:15px;}
-}
+.card{background:#fff;padding:20px;border-radius:16px;margin-bottom:16px;}
 </style>
 </head>
 <body>
@@ -63,261 +23,25 @@ th{background:#f1f5f9;font-weight:500;}
     <button class="nav-btn" onclick="switchTab('cashrecord')">出入金紀錄</button>
 </div>
 
-<!-- 總覽頁 -->
 <div id="overview" class="tab-page active">
-    <div class="card">
-        <h4>總身價 (TWD)</h4>
-        <div class="metric-value" id="totalNetWorth">0</div>
-        <div id="athInfo" class="gray" style="margin-top:10px;"></div>
-        <div id="athTag"></div>
-    </div>
-
-    <div class="chart-switch">
-        <button class="switch-btn active" data-range="day">日</button>
-        <button class="switch-btn" data-range="month">月</button>
-        <button class="switch-btn" data-range="year">年</button>
-    </div>
-    <div class="card chart-box">
-        <canvas id="worthChart"></canvas>
-    </div>
-
-    <div class="card chart-box">
-        <canvas id="pieChart"></canvas>
-    </div>
-
-    <div class="card">
-        <h4>Crypto累計損益</h4>
-        <div id="cryptoPnl" class="metric-value">0</div>
-    </div>
+    <div class="card">這是【總覽頁】</div>
 </div>
-
-<!-- 資產管理 -->
 <div id="asset" class="tab-page">
-    <div class="card">
-        <h4>新增資產</h4>
-        <form id="assetForm">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>資產名稱</label>
-                    <input type="text" id="assetName" placeholder="2330 / BTC">
-                </div>
-                <div class="form-group">
-                    <label>類別</label>
-                    <select id="assetType">
-                        <option value="現金">現金</option>
-                        <option value="銀行">銀行</option>
-                        <option value="台股">台股</option>
-                        <option value="加密貨幣">加密貨幣</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>幣別</label>
-                    <select id="assetCurrency">
-                        <option value="TWD">TWD 新台幣</option>
-                        <option value="USD">USD 美元</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>持有數量</label>
-                    <input type="number" id="assetAmount" step="0.0001">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>成本單價</label>
-                    <input type="number" id="assetCost" step="0.01">
-                </div>
-                <div class="form-group" style="justify-content:flex-end;display:flex;align-items:flex-end;">
-                    <button class="btn">新增資產</button>
-                </div>
-            </div>
-        </form>
-    </div>
-    <div class="card">
-        <h4>資產清單（現價暫以成本價顯示）</h4>
-        <table>
-            <thead>
-                <tr>
-                    <th>名稱</th>
-                    <th>類別</th>
-                    <th>幣別</th>
-                    <th>數量</th>
-                    <th>成本單價</th>
-                    <th>現價</th>
-                    <th>總市值(TWD)</th>
-                    <th>未實現損益</th>
-                    <th>操作</th>
-                </tr>
-            </thead>
-            <tbody id="assetTableBody"></tbody>
-        </table>
-    </div>
+    <div class="card">這是【資產管理頁】</div>
 </div>
-
-<!-- 應收帳款 -->
 <div id="receivable" class="tab-page">
-    <div class="card">
-        <h4>應收帳款</h4>
-        <p>後續開放新增、備註欄、金額降序排列</p>
-    </div>
+    <div class="card">這是【應收帳款頁】</div>
 </div>
-
-<!-- 出入金紀錄 -->
 <div id="cashrecord" class="tab-page">
-    <div class="card">
-        <h4>入金/出金紀錄</h4>
-        <p>紀錄Crypto專屬出入金，用於計算真實投資損益</p>
-    </div>
+    <div class="card">這是【出入金紀錄頁】</div>
 </div>
 
 <script>
-// 【核心】Inline onclick呼叫的頁籤切換函數，優先載入，永遠可用
-function switchTab(targetId) {
-    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-    document.querySelectorAll(".tab-page").forEach(p => p.classList.remove("active"));
-    event.target.classList.add("active");
-    document.getElementById(targetId).classList.add("active");
-}
-
-// Supabase 連線設定
-const SUPABASE_URL = "https://gbzyjeevvtwxqtnmbshe.supabase.co";
-const SUPABASE_KEY = "sb_publishable_sl0v25ghGOPXQw4SmHlC6g_m8-NLcd9";
-const { createClient } = supabase;
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-const typeOrder = {"現金":1,"銀行":2,"台股":3,"加密貨幣":4};
-let worthChart, pieChart;
-let assetList = [];
-const usdTwdRate = 32.5;
-
-// 延遲載入資料，不要阻塞介面
-setTimeout(async ()=>{
-    try {
-        await loadAssets();
-        calcOverview();
-    } catch (err) {
-        console.log("資料載入異常：", err);
-    }
-}, 300);
-
-async function loadAssets() {
-    const { data, error } = await supabase.from("assets").select("*");
-    if (error) {
-        alert("讀取資產失敗：" + error.message);
-        return;
-    }
-    assetList = data;
-    assetList.forEach(item => item.latestPrice = item.cost_price || 0);
-    renderAssetTable();
-}
-
-function calcMarketValue(item) {
-    let price = item.latestPrice || item.cost_price || 0;
-    let value = price * item.amount;
-    if (item.currency === "USD") value = value * usdTwdRate;
-    return value;
-}
-
-function renderAssetTable() {
-    const tbody = document.getElementById("assetTableBody");
-    assetList.sort((a, b) => {
-        const weightA = typeOrder[a.type] ?? 99;
-        const weightB = typeOrder[b.type] ?? 99;
-        if (weightA !== weightB) return weightA - weightB;
-        return calcMarketValue(b) - calcMarketValue(a);
-    });
-    tbody.innerHTML = "";
-    assetList.forEach(item => {
-        const marketTwd = calcMarketValue(item);
-        const costTotal = item.amount * item.cost_price;
-        const pnl = marketTwd - (item.currency === "USD" ? costTotal * usdTwdRate : costTotal);
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${item.name}</td>
-            <td>${item.type}</td>
-            <td>${item.currency}</td>
-            <td>${item.amount}</td>
-            <td>${item.cost_price}</td>
-            <td>${Number(item.latestPrice).toFixed(2)}</td>
-            <td>${marketTwd.toLocaleString()}</td>
-            <td class="${pnl >= 0 ? 'green' : 'red'}">${pnl.toLocaleString()}</td>
-            <td><button class="btn-del" data-id="${item.id}">刪除</button></td>
-        `;
-        tbody.appendChild(tr);
-    })
-    document.querySelectorAll(".btn-del").forEach(btn => {
-        btn.onclick = () => deleteAsset(btn.dataset.id);
-    })
-}
-
-function calcOverview() {
-    let totalWorth = 0;
-    assetList.forEach(item => totalWorth += calcMarketValue(item));
-    document.getElementById("totalNetWorth").innerText = totalWorth.toLocaleString();
-    renderPieChart(totalWorth);
-}
-
-function renderPieChart(total) {
-    const ctx = document.getElementById("pieChart").getContext("2d");
-    const groupMap = {};
-    assetList.forEach(item => {
-        if (!groupMap[item.type]) groupMap[item.type] = 0;
-        groupMap[item.type] += calcMarketValue(item);
-    })
-    const labels = Object.keys(groupMap);
-    const data = labels.map(k => groupMap[k]);
-    if (pieChart) pieChart.destroy();
-    pieChart = new Chart(ctx, {
-        type: "pie",
-        data: { labels, datasets: [{ data }] },
-        options: {
-            plugins: {
-                title: { display: true, text: "資產配置圓餅圖", font: { size: 16 } },
-                tooltip: {
-                    callbacks: {
-                        label: function(item) {
-                            const val = item.raw;
-                            const percent = ((val / total) * 100).toFixed(2);
-                            return `${item.label}：NT$${val.toLocaleString()} (${percent}%)`;
-                        }
-                    }
-                }
-            }
-        }
-    })
-}
-
-document.getElementById("assetForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const name = document.getElementById("assetName").value.trim();
-    const type = document.getElementById("assetType").value;
-    const currency = document.getElementById("assetCurrency").value;
-    const amount = parseFloat(document.getElementById("assetAmount").value);
-    const costPrice = parseFloat(document.getElementById("assetCost").value);
-    if (!name || isNaN(amount) || isNaN(costPrice)) {
-        alert("請完整填寫所有欄位");
-        return;
-    }
-    const payload = { name, type, currency, amount, cost_price: costPrice };
-    const { error } = await supabase.from("assets").insert([payload]);
-    if (error) alert("新增失敗：" + error.message);
-    else {
-        document.getElementById("assetForm").reset();
-        loadAssets();
-        calcOverview();
-    }
-})
-
-async function deleteAsset(id) {
-    if (!confirm("確認刪除此筆資產？")) return;
-    const { error } = await supabase.from("assets").delete().eq("id", id);
-    if (error) alert("刪除失敗：" + error.message);
-    else {
-        loadAssets();
-        calcOverview();
-    }
+function switchTab(targetId){
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById(targetId).classList.add('active');
 }
 </script>
 </body>
