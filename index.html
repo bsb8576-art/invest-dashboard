@@ -8,6 +8,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui, -apple-system, sans-serif;}
 body{background:#f7f8fa;padding:16px;}
+
 .nav-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
 .nav-btn{padding:10px 18px;border:none;border-radius:8px;font-size:15px;cursor:pointer;}
 .nav-btn.active{background:#2563eb;color:white;}
@@ -15,20 +16,38 @@ body{background:#f7f8fa;padding:16px;}
 
 .tab-page{display:none;}
 .tab-page.active{display:block;}
+
 .card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px #00000012;margin-bottom:16px;}
-.input-row{display:flex;gap:10px;margin:8px 0;align-items:center;flex-wrap:wrap;}
-input,select{padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px;}
+.card h4{margin-bottom:16px;font-size:18px;font-weight:600;}
+
 .month-stat{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0;text-align:center;}
 .stat-value{font-size:22px;font-weight:bold;margin-top:4px;}
 .green{color:#16a34a;}.red{color:#dc2626;}.gray{color:#333;}
+
+form{display:flex;flex-direction:column;gap:12px;}
+.form-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.form-group{display:flex;flex-direction:column;gap:6px;flex:1;min-width:100px;}
+.form-group label{font-size:13px;color:#666;}
+input,select{padding:10px;border:1px solid #ddd;border-radius:8px;font-size:15px;background:#fff;}
+input:focus,select:focus{outline:none;border-color:#2563eb;}
+
+.btn{padding:10px 16px;border-radius:8px;border:none;cursor:pointer;background:#2563eb;color:white;font-size:15px;}
+.btn-del{background:#dc2626;padding:8px 12px;font-size:14px;}
+
 table{width:100%;border-collapse:collapse;margin-top:12px;}
-th,td{border:1px solid #eee;padding:10px;text-align:left;font-size:14px;}
+th,td{border:1px solid #eee;padding:12px;text-align:left;font-size:14px;}
 th{background:#f3f4f6;}
-.btn{padding:7px 12px;border-radius:6px;border:none;cursor:pointer;background:#2563eb;color:white;}
-.btn-del{background:#dc2626;}
+
+@media (max-width: 640px){
+    .form-row{flex-direction:column;align-items:stretch;}
+    .form-group{min-width:auto;}
+    table{font-size:13px;}
+    th,td{padding:10px 8px;}
+}
 </style>
 </head>
 <body>
+
 <div class="nav-bar">
     <button class="nav-btn active" data-target="overview">總覽</button>
     <button class="nav-btn" data-target="asset">資產管理</button>
@@ -39,11 +58,15 @@ th{background:#f3f4f6;}
 <div id="overview" class="tab-page active">
     <div class="card">
         <h4>本月統計</h4>
-        <div class="input-row">
-            <label>收入：</label>
-            <input type="number" id="monthIncome" step="0.01">
-            <label>支出：</label>
-            <input type="number" id="monthOutlay" step="0.01">
+        <div class="form-row">
+            <div class="form-group">
+                <label>收入</label>
+                <input type="number" id="monthIncome" step="0.01" placeholder="0">
+            </div>
+            <div class="form-group">
+                <label>支出</label>
+                <input type="number" id="monthOutlay" step="0.01" placeholder="0">
+            </div>
         </div>
         <div class="month-stat">
             <div>
@@ -65,26 +88,47 @@ th{background:#f3f4f6;}
 <div id="asset" class="tab-page">
     <div class="card">
         <h4>新增資產</h4>
-        <div class="input-row">
-            <label>資產名稱</label>
-            <input type="text" id="assetName" placeholder="2330 / SOL">
-            <label>類別</label>
-            <select id="assetType">
-                <option value="台股">台股</option>
-                <option value="加密貨幣">加密貨幣</option>
-            </select>
-            <label>幣別</label>
-            <select id="assetCurrency">
-                <option value="TWD">TWD 新台幣</option>
-                <option value="USD">USD 美元</option>
-            </select>
-            <label>持有數量</label>
-            <input type="number" id="assetAmount" step="0.0001">
-            <label>成本單價</label>
-            <input type="number" id="assetCost" step="0.01">
-            <button class="btn" id="btnAddAsset">新增</button>
-        </div>
+        <form id="assetForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>資產名稱</label>
+                    <input type="text" id="assetName" placeholder="2330 / SOL">
+                </div>
+                <div class="form-group">
+                    <label>類別</label>
+                    <select id="assetType">
+                        <option value="台股">台股</option>
+                        <option value="加密貨幣">加密貨幣</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>幣別</label>
+                    <select id="assetCurrency">
+                        <option value="TWD">TWD 新台幣</option>
+                        <option value="USD">USD 美元</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>持有數量</label>
+                    <input type="number" id="assetAmount" step="0.0001" placeholder="0">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>成本單價</label>
+                    <input type="number" id="assetCost" step="0.01" placeholder="0">
+                </div>
+                <div class="form-group" style="justify-content:flex-end;">
+                    <button type="submit" class="btn">新增資產</button>
+                </div>
+            </div>
+        </form>
     </div>
+
     <div class="card">
         <h4>資產清單</h4>
         <table id="assetTable">
@@ -116,7 +160,6 @@ th{background:#f3f4f6;}
 </div>
 
 <script>
-// 介面邏輯優先執行
 const incomeInput = document.getElementById("monthIncome");
 const outlayInput = document.getElementById("monthOutlay");
 const dispIncome = document.getElementById("dispIncome");
@@ -131,14 +174,18 @@ function calcBalance(){
     dispOutlay.textContent = outlay;
     dispNet.textContent = net;
     dispNet.className = "stat-value";
-    if(net > 0) dispNet.classList.add("green");
-    else if(net < 0) dispNet.classList.add("red");
+    if(net > 0){
+        dispNet.classList.add("green");
+    }else if(net < 0){
+        dispNet.classList.add("red");
+    }else{
+        dispNet.classList.add("gray");
+    }
 }
 incomeInput.addEventListener("input", calcBalance);
 outlayInput.addEventListener("input", calcBalance);
 calcBalance();
 
-// 頁籤切換
 document.querySelectorAll(".nav-btn").forEach(btn=>{
     btn.addEventListener("click", ()=>{
         const targetId = btn.dataset.target;
@@ -149,8 +196,8 @@ document.querySelectorAll(".nav-btn").forEach(btn=>{
     })
 })
 
-// Supabase
 let supabaseClient;
+
 async function initDB(){
     const SUPABASE_CONFIG = {
       URL: "https://gbzyjeevvtwxqtnmbshe.supabase.co",
@@ -161,13 +208,15 @@ async function initDB(){
 }
 
 async function loadAssets(){
-    const {data,error} = await supabaseClient.from("assets").select("*");
+    const {data, error} = await supabaseClient.from("assets").select("*");
     if(error){
-        alert("讀取資產失敗:"+error.message);
+        alert("讀取資產失敗：" + error.message);
         return;
     }
+
     const tbody = document.querySelector("#assetTable tbody");
     tbody.innerHTML = "";
+
     data.forEach(item=>{
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -180,49 +229,58 @@ async function loadAssets(){
         `;
         tbody.appendChild(tr);
     })
+
     document.querySelectorAll(".btn-del").forEach(delBtn=>{
         delBtn.onclick = ()=> delAsset(delBtn.dataset.id);
     })
 }
 
-async function addAsset(){
+async function addAsset(e){
+    e.preventDefault();
+
     const name = document.getElementById("assetName").value.trim();
     const type = document.getElementById("assetType").value;
     const currency = document.getElementById("assetCurrency").value;
     const amount = parseFloat(document.getElementById("assetAmount").value);
-    const cost = parseFloat(document.getElementById("assetCost").value);
-    
-    if(!name || isNaN(amount) || isNaN(cost)){
+    const cost_price = parseFloat(document.getElementById("assetCost").value);
+
+    if(!name || isNaN(amount) || isNaN(cost_price)){
         alert("請完整填寫資產資料");
         return;
     }
 
     const {error} = await supabaseClient.from("assets").insert([
-        {name, type, currency, amount, cost_price:cost}
+        {name, type, currency, amount, cost_price}
     ]);
+
     if(error){
-        alert("新增失敗:"+error.message);
+        alert("新增失敗：" + error.message);
         return;
     }
-    //清空輸入
+
     document.getElementById("assetName").value = "";
     document.getElementById("assetAmount").value = "";
     document.getElementById("assetCost").value = "";
+
     loadAssets();
 }
 
 async function delAsset(id){
-    if(!confirm("確認刪除此筆資產?")) return;
-    const {error} = await supabaseClient.from("assets").delete().eq("id",id);
-    if(error) alert("刪除失敗:"+error.message);
-    else loadAssets();
+    if(!confirm("確認刪除此筆資產？")) return;
+    const {error} = await supabaseClient.from("assets").delete().eq("id", id);
+    if(error){
+        alert("刪除失敗：" + error.message);
+    }else{
+        loadAssets();
+    }
 }
 
-document.getElementById("btnAddAsset").addEventListener("click", addAsset);
+document.getElementById("assetForm").addEventListener("submit", addAsset);
 
 setTimeout(()=>{
     initDB();
 }, 800);
 </script>
+
 </body>
 </html>
