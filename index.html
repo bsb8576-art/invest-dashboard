@@ -11,7 +11,7 @@
 body{background:#f7f8fa;padding:16px;padding-bottom:40px;}
 
 .nav-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
-.nav-btn{padding:10px 16px;border:none;border-radius:10px;font-size:15px;cursor:pointer;background:#e5e7eb;color:#222;transition:0.2s;}
+.nav-btn{padding:10px 16px;border:none;border-radius:10px;font-size:15px;cursor:pointer;background:#e5e7eb;color:#222;transition:0.2s;pointer-events:auto;}
 .nav-btn.active{background:#2563eb;color:#fff;}
 
 .tab-page{display:none;}
@@ -25,7 +25,7 @@ body{background:#f7f8fa;padding:16px;padding-bottom:40px;}
 .form-group label{font-size:13px;color:#555;}
 input,select{padding:10px;border:1px solid #ddd;border-radius:8px;font-size:15px;}
 .btn{padding:11px 18px;border:none;border-radius:8px;background:#2563eb;color:#fff;font-size:15px;cursor:pointer;}
-.btn-del{background:#dc2626;padding:8px 10px;font-size:13px;}
+.btn-del{background:#dc2626;padding:8px 10px;font-size:13px;color:white;border:none;border-radius:6px;cursor:pointer;}
 
 table{width:100%;border-collapse:collapse;margin-top:10px;}
 th,td{border:1px solid #eee;padding:10px 8px;text-align:left;font-size:14px;}
@@ -158,8 +158,8 @@ th{background:#f3f4f6;}
 <!-- 應收帳款 -->
 <div id="receivable" class="tab-page">
     <div class="card">
-        <h4>應收帳款（後續開放新增）</h4>
-        <p>每筆項目支援備註、自動依照金額降序排列</p>
+        <h4>應收帳款</h4>
+        <p>後續開放新增、備註欄、金額降序排列</p>
     </div>
 </div>
 
@@ -172,7 +172,7 @@ th{background:#f3f4f6;}
 </div>
 
 <script>
-// ===== 設定
+// ===== Supabase設定
 const SUPABASE_URL = "https://gbzyjeevvtwxqtnmbshe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_sl0v25ghGOPXQw4SmHlC6g_m8-NLcd9";
 const { createClient } = supabase;
@@ -182,23 +182,36 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const typeOrder = {"現金":1,"銀行":2,"台股":3,"加密貨幣":4};
 let worthChart, pieChart;
 let assetList = [];
-let usdTwdRate = 32.5; // 初始匯率，API更新覆蓋
+let usdTwdRate = 32.5;
 
-// 頁籤切換
-document.querySelectorAll(".nav-btn").forEach(btn=>{
-    btn.onclick = ()=>{
-        const target = btn.dataset.target;
-        document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
-        document.querySelectorAll(".tab-page").forEach(p=>p.classList.remove("active"));
-        btn.classList.add("active");
-        document.getElementById(target).classList.add("active");
-    }
-})
+// =========【重寫：穩定頁籤切換】========
+document.addEventListener('DOMContentLoaded', function(){
+    // 頁籤切換
+    document.querySelectorAll(".nav-btn").forEach(btn=>{
+        btn.addEventListener('click', function(){
+            const targetId = this.getAttribute('data-target');
+            // 清除所有active
+            document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+            document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+            // 啟用目標頁面
+            this.classList.add('active');
+            document.getElementById(targetId).classList.add('active');
+        })
+    })
+
+    // 執行資料載入
+    loadAssets().catch(err=>{
+        console.error("載入資產錯誤:",err);
+    });
+});
 
 // 載入資產 + 抓取報價
 async function loadAssets(){
     const {data,error} = await supabase.from("assets").select("*");
-    if(error){alert("讀取失敗:"+error.message);return;}
+    if(error){
+        alert("讀取失敗:"+error.message);
+        return;
+    }
     assetList = data;
     await fetchAllPrice();
     renderAssetTable();
@@ -340,11 +353,6 @@ async function deleteAsset(id){
     const {error} = await supabase.from("assets").delete().eq("id",id);
     if(error) alert("刪除失敗:"+error.message);
     else loadAssets();
-}
-
-// 初始化
-window.onload = async()=>{
-    await loadAssets();
 }
 </script>
 </body>
